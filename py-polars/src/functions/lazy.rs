@@ -1,7 +1,7 @@
 use polars::lazy::dsl;
 use polars::lazy::dsl::Expr;
 use polars::prelude::*;
-use pyo3::exceptions::PyTypeError;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBool, PyBytes, PyFloat, PyInt, PyString};
 
@@ -395,6 +395,13 @@ pub fn lit(value: &PyAny, allow_object: bool) -> PyResult<PyExpr> {
     } else if let Ok(float) = value.downcast::<PyFloat>() {
         let val = float.extract::<f64>().unwrap();
         Ok(dsl::lit(val).into())
+    } else if value.get_type().name().unwrap() == "Decimal" {
+        let val = value.extract::<Wrap<AnyValue>>().unwrap();
+        Ok(dsl::lit(
+            LiteralValue::try_from(val.0)
+                .map_err(|pe| PyValueError::new_err(format!("{:?}", pe)))?,
+        )
+        .into())
     } else if let Ok(pystr) = value.downcast::<PyString>() {
         Ok(dsl::lit(
             pystr
@@ -464,6 +471,8 @@ pub fn repeat(value: PyExpr, n: PyExpr, dtype: Option<Wrap<DataType>>) -> PyResu
             if int_value >= i32::MIN as i64 && int_value <= i32::MAX as i64 {
                 value = value.cast(DataType::Int32);
             }
+        } else if let DataType::Decimal(p, s) = av.dtype() {
+            value = value.cast(DataType::Decimal(p, s));
         }
     }
     Ok(dsl::repeat(value, n).into())

@@ -55,6 +55,8 @@ pub enum LiteralValue {
     Duration(i64, TimeUnit),
     #[cfg(feature = "dtype-time")]
     Time(i64),
+    #[cfg(feature = "dtype-decimal")]
+    Decimal(i128, usize),
     Series(SpecialEq<Series>),
 }
 
@@ -99,6 +101,8 @@ impl LiteralValue {
             DateTime(v, tu, tz) => AnyValue::Datetime(*v, *tu, tz),
             #[cfg(feature = "dtype-time")]
             Time(v) => AnyValue::Time(*v),
+            #[cfg(feature = "dtype-decimal")]
+            Decimal(v, scale) => AnyValue::Decimal(*v, *scale),
             _ => return None,
         };
         Some(av)
@@ -135,6 +139,8 @@ impl LiteralValue {
             LiteralValue::Null => DataType::Null,
             #[cfg(feature = "dtype-time")]
             LiteralValue::Time(_) => DataType::Time,
+            #[cfg(feature = "dtype-decimal")]
+            LiteralValue::Decimal(_, scale) => DataType::Decimal(None, Some(*scale)),
         }
     }
 }
@@ -212,6 +218,8 @@ impl TryFrom<AnyValue<'_>> for LiteralValue {
                     }
                 }
             },
+            #[cfg(feature = "dtype-decimal")]
+            AnyValue::Decimal(v, scale) => Ok(Self::Decimal(v, scale)),
             v => polars_bail!(
                 ComputeError: "cannot convert any-value {:?} to literal", v
             ),
