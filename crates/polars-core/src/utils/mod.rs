@@ -525,6 +525,8 @@ macro_rules! apply_method_physical_numeric {
         match $self.dtype() {
             DataType::Float32 => $self.f32().unwrap().$method($($args),*),
             DataType::Float64 => $self.f64().unwrap().$method($($args),*),
+            #[cfg(feature = "dtype-decimal")]
+            DataType::Decimal(_, _) => $self.decimal().unwrap().$method($($args),*),
             _ => apply_method_physical_integer!($self, $method, $($args),*),
         }
     }

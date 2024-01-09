@@ -267,7 +267,12 @@ pub fn get_supertype(l: &DataType, r: &DataType) -> Option<DataType> {
             (d @ Decimal(_, _), dt) if dt.is_signed_integer() || dt.is_unsigned_integer() => Some(d.clone()),
             #[cfg(feature = "dtype-decimal")]
             (Decimal(p1, s1), Decimal(p2, s2)) => {
-                Some(Decimal((*p1).zip(*p2).map(|(p1, p2)| p1.max(p2)), (*s1).max(*s2)))
+                let newprec = match (p1, p2) {
+                    (Some(p1), Some(p2)) => Some(*p1.max(p2)),
+                    (Some(_), None) | (None, Some(_))=> Some(38),
+                    (None, None) => None,
+                };
+                Some(Decimal(newprec, (*s1).max(*s2)))
             }
             #[cfg(feature = "dtype-decimal")]
             (Decimal(_, _), f @ (Float32 | Float64)) => Some(f.clone()),

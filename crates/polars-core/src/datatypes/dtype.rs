@@ -85,6 +85,10 @@ impl PartialEq for DataType {
                 (Array(left_inner, left_width), Array(right_inner, right_width)) => {
                     left_width == right_width && left_inner == right_inner
                 },
+                #[cfg(feature = "dtype-decimal")]
+                (Decimal(prec_l, scale_l), Decimal(prec_r, scale_r)) => {
+                    prec_l == prec_r && scale_l == scale_r
+                },
                 _ => std::mem::discriminant(self) == std::mem::discriminant(other),
             }
         }

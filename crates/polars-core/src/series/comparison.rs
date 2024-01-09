@@ -43,11 +43,6 @@ macro_rules! impl_compare {
 
         let (lhs, rhs) = coerce_lhs_rhs(lhs, rhs).expect("cannot coerce datatypes");
 
-        #[cfg(feature = "dtype-decimal")]
-        match (lhs.dtype(), rhs.dtype()) {
-            (Decimal(_, _), Decimal(_, _)) => return Ok(lhs.decimal().unwrap().$method(rhs.decimal().unwrap())?.with_name(lhs.name())),
-            _ => (),
-        };
 
         let lhs = lhs.to_physical_repr();
         let rhs = rhs.to_physical_repr();
@@ -66,6 +61,8 @@ macro_rules! impl_compare {
             Float32 => lhs.f32().unwrap().$method(rhs.f32().unwrap()),
             Float64 => lhs.f64().unwrap().$method(rhs.f64().unwrap()),
             List(_) => lhs.list().unwrap().$method(rhs.list().unwrap()),
+            #[cfg(feature = "dtype-decimal")]
+            Decimal(_, _) => lhs.decimal().unwrap().$method(rhs.decimal().unwrap())?,
             #[cfg(feature = "dtype-array")]
             Array(_, _) => lhs.array().unwrap().$method(rhs.array().unwrap()),
             #[cfg(feature = "dtype-struct")]

@@ -616,12 +616,25 @@ class Series:
             elif (other is False and op == "eq") or (other is True and op == "neq"):
                 return ~self
 
-        elif isinstance(other, float) and self.dtype.is_integer():
+        elif isinstance(other, float) and (self.dtype.is_integer() or self.dtype.is_decimal()):
             # require upcast when comparing int series to float value
             self = self.cast(Float64)
             f = get_ffi_func(op + "_<>", Float64, self._s)
             assert f is not None
             return self._from_pyseries(f(other))
+
+        elif isinstance(other, int) and self.dtype.is_decimal():
+            # require upcast when comparing int series to float value
+            f = get_ffi_func(op + "_<>", Int64, self._s)
+            assert f is not None
+            return self._from_pyseries(f(other))
+
+
+        elif isinstance(other, PyDecimal) and self.dtype.is_decimal():
+            _s = sequence_to_pyseries(self.name, [other], self.dtype).cast(
+                self.dtype, strict=True
+            )
+            return self._from_pyseries(getattr(self._s, op)(_s))
 
         elif isinstance(other, datetime):
             if self.dtype == Date:
