@@ -3,6 +3,9 @@ mod scalar;
 #[cfg(feature = "dtype-categorical")]
 mod categorical;
 
+#[cfg(feature = "dtype-decimal")]
+mod decimal;
+
 use std::ops::Not;
 
 use arrow::array::BooleanArray;
