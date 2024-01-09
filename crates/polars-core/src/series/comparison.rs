@@ -42,6 +42,13 @@ macro_rules! impl_compare {
         };
 
         let (lhs, rhs) = coerce_lhs_rhs(lhs, rhs).expect("cannot coerce datatypes");
+
+        #[cfg(feature = "dtype-decimal")]
+        match (lhs.dtype(), rhs.dtype()) {
+            (Decimal(_, _), Decimal(_, _)) => return Ok(lhs.decimal().unwrap().$method(rhs.decimal().unwrap())?.with_name(lhs.name())),
+            _ => (),
+        };
+
         let lhs = lhs.to_physical_repr();
         let rhs = rhs.to_physical_repr();
         let mut out = match lhs.dtype() {
