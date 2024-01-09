@@ -94,7 +94,7 @@ impl PhysicalExpr for LiteralExpr {
                 .into_time()
                 .into_series(),
             #[cfg(feature = "dtype-decimal")]
-            Decimal(v, s) => Int128Chunked::full(LITERAL_NAME, *v, *s)
+            Decimal(v, s) => Int128Chunked::full(LITERAL_NAME, *v, 1)
                 .into_decimal(None, *s)?
                 .into_series(),
             Series(series) => series.deref().clone(),
