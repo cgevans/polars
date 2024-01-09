@@ -371,6 +371,8 @@ impl<'a> AnyValue<'a> {
             Struct(_, _, fields) => DataType::Struct(fields.to_vec()),
             #[cfg(feature = "dtype-struct")]
             StructOwned(payload) => DataType::Struct(payload.1.clone()),
+            #[cfg(feature = "dtype-decimal")]
+            Decimal(_, scale) => DataType::Decimal(None, Some(scale)),
             Binary(_) => DataType::Binary,
             _ => unimplemented!(),
         }
